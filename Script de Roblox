@@ -1,1 +1,173 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
+-- Configurações
+local espEnabled = true
+local teleportHeight = 1000  -- Altura do teleporte
+
+-- Cria a interface
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "SkyTeleportGUI"
+gui.ResetOnSpawn = false
+
+-- Estilo para os botões
+local buttonStyle = {
+    Size = UDim2.new(0, 180, 0, 40),
+    BackgroundColor3 = Color3.fromRGB(30, 30, 40),
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 16,
+    BorderSizePixel = 0
+}
+
+-- Cria botão de teleporte para o alto
+local teleportButton = Instance.new("TextButton", gui)
+teleportButton.Text = "☁️ TELEPORTAR PARA O ALTO"
+teleportButton.Position = UDim2.new(0.5, -90, 0.9, -50)
+for prop, value in pairs(buttonStyle) do
+    teleportButton[prop] = value
+end
+
+teleportButton.MouseButton1Click:Connect(function()
+    local character = LocalPlayer.Character
+    if character then
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            -- Teleporta para o alto
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, teleportHeight, 0)
+            
+            -- Efeito visual
+            local effect = Instance.new("Part", workspace)
+            effect.Size = Vector3.new(5, 5, 5)
+            effect.Position = humanoidRootPart.Position - Vector3.new(0, 5, 0)
+            effect.Anchored = true
+            effect.CanCollide = false
+            effect.Transparency = 0.7
+            effect.BrickColor = BrickColor.new("Cyan")
+            effect.Material = EnumMaterial.Neon
+            
+            game:GetService("TweenService"):Create(
+                effect,
+                TweenInfo.new(1.5),
+                {Transparency = 1, Size = Vector3.new(15, 15, 15)}
+            ):Play()
+            
+            game.Debris:AddItem(effect, 1.5)
+        end
+    end
+end)
+
+-- Botão para alternar ESP
+local espButton = Instance.new("TextButton", gui)
+espButton.Text = "👁️ ESP: ATIVADO"
+espButton.Position = UDim2.new(0.5, -90, 0.9, -100)
+for prop, value in pairs(buttonStyle) do
+    espButton[prop] = value
+end
+espButton.BackgroundColor3 = Color3.fromRGB(40, 100, 40)
+
+espButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    if espEnabled then
+        espButton.Text = "👁️ ESP: ATIVADO"
+        espButton.BackgroundColor3 = Color3.fromRGB(40, 100, 40)
+    else
+        espButton.Text = "👁️ ESP: DESATIVADO"
+        espButton.BackgroundColor3 = Color3.fromRGB(100, 40, 40)
+        clearESP()
+    end
+end)
+
+-- Função para criar ESP
+local espCache = {}
+
+function createESP(player)
+    if player == LocalPlayer then return end
+    
+    local character = player.Character
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- Cria a tag ESP
+    local espGui = Instance.new("BillboardGui")
+    espGui.Name = "ESP_"..player.Name
+    espGui.Adornee = humanoidRootPart
+    espGui.Size = UDim2.new(0, 100, 0, 50)
+    espGui.AlwaysOnTop = true
+    espGui.StudsOffset = Vector3.new(0, 3, 0)
+    espGui.MaxDistance = 500
+    espGui.Parent = humanoidRootPart
+    
+    local espText = Instance.new("TextLabel")
+    espText.Size = UDim2.new(1, 0, 1, 0)
+    espText.BackgroundTransparency = 1
+    espText.Text = player.Name
+    espText.TextColor3 = Color3.new(1, 1, 1)
+    espText.TextScaled = true
+    espText.Font = Enum.Font.GothamBold
+    espText.Parent = espGui
+    
+    espCache[player] = espGui
+    return espGui
+end
+
+-- Limpa o ESP
+function clearESP()
+    for _, esp in pairs(espCache) do
+        if esp and esp.Parent then
+            esp:Destroy()
+        end
+    end
+    espCache = {}
+end
+
+-- Atualiza o ESP
+function updateESP()
+    if not espEnabled then return end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                if not espCache[player] then
+                    createESP(player)
+                end
+                
+                -- Atualiza a posição
+                local espTag = espCache[player]
+                if espTag then
+                    local screenPos, onScreen = Camera:WorldToScreenPoint(player.Character.HumanoidRootPart.Position)
+                    espTag.Enabled = onScreen
+                end
+            elseif espCache[player] then
+                espCache[player]:Destroy()
+                espCache[player] = nil
+            end
+        end
+    end
+end
+
+-- Loop principal
+RunService.Heartbeat:Connect(function()
+    updateESP()
+end)
+
+-- Notificação inicial
+local notification = Instance.new("BillboardGui", LocalPlayer:WaitForChild("PlayerGui"))
+notification.Size = UDim2.new(6, 0, 2, 0)
+notification.StudsOffset = Vector3.new(0, 3, 0)
+notification.Adornee = LocalPlayer.Character:WaitForChild("Head")
+
+local notifText = Instance.new("TextLabel", notification)
+notifText.Size = UDim2.new(1, 0, 1, 0)
+notifText.Text = "Sky Teleport Carregado!"
+notifText.TextColor3 = Color3.new(0, 1, 1)
+notifText.BackgroundTransparency = 1
+notifText.Font = Enum.Font.GothamBold
+notifText.TextScaled = true
+
+wait(3)
+notification:Destroy()
