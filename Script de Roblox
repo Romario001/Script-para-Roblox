@@ -1,11 +1,10 @@
-nti-drop
-local antiDropSystem = createAntiDropSystem()
---[[
+--[[ 
 💥 Romario Script [NEW]
 ✅ ESP (wallhack)
 ✅ Noclip
 ✅ Proteção com bolha vermelha (manual)
 ✅ Totalmente com interface mobile
+🔑 Key System: "Romario Mod"
 ]]
 
 local Players = game:GetService("Players")
@@ -13,132 +12,181 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 
+-- Criar GUI principal e de verificação
 local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 gui.Name = "RomarioScript"
 
--- Título
-local titulo = Instance.new("TextLabel", gui)
-titulo.Size = UDim2.new(1, 0, 0, 30)
-titulo.Position = UDim2.new(0, 0, 0, 0)
-titulo.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-titulo.Text = "💥 Romario Script [NEW]"
-titulo.TextColor3 = Color3.fromRGB(0, 255, 0)
-titulo.TextScaled = true
-titulo.Font = Enum.Font.GothamBold
+-- TELA DE KEY
+local frameKey = Instance.new("Frame", gui)
+frameKey.Size = UDim2.new(0.6, 0, 0.3, 0)
+frameKey.Position = UDim2.new(0.2, 0, 0.3, 0)
+frameKey.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frameKey.BorderSizePixel = 0
 
--- ESP
-local function ativarESP()
-	for _, player in pairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-			if not player.Character.Head:FindFirstChild("ESP") then
-				local esp = Instance.new("BillboardGui", player.Character.Head)
-				esp.Size = UDim2.new(0, 100, 0, 40)
-				esp.AlwaysOnTop = true
-				esp.Name = "ESP"
+local tituloKey = Instance.new("TextLabel", frameKey)
+tituloKey.Size = UDim2.new(1, 0, 0.3, 0)
+tituloKey.Position = UDim2.new(0, 0, 0, 0)
+tituloKey.Text = "🔑 Digite a Key para usar"
+tituloKey.TextColor3 = Color3.fromRGB(255, 255, 255)
+tituloKey.BackgroundTransparency = 1
+tituloKey.TextScaled = true
+tituloKey.Font = Enum.Font.GothamBold
 
-				local label = Instance.new("TextLabel", esp)
-				label.Size = UDim2.new(1, 0, 1, 0)
-				label.Text = player.Name
-				label.BackgroundTransparency = 1
-				label.TextColor3 = Color3.fromRGB(255, 0, 0)
-				label.TextScaled = true
-			end
+local input = Instance.new("TextBox", frameKey)
+input.Size = UDim2.new(0.9, 0, 0.3, 0)
+input.Position = UDim2.new(0.05, 0, 0.35, 0)
+input.PlaceholderText = "Insira a Key aqui"
+input.TextScaled = true
+input.Font = Enum.Font.Gotham
+input.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+input.TextColor3 = Color3.new(1,1,1)
+
+local botaoConfirmar = Instance.new("TextButton", frameKey)
+botaoConfirmar.Size = UDim2.new(0.9, 0, 0.25, 0)
+botaoConfirmar.Position = UDim2.new(0.05, 0, 0.7, 0)
+botaoConfirmar.Text = "✅ Confirmar"
+botaoConfirmar.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+botaoConfirmar.TextColor3 = Color3.new(1,1,1)
+botaoConfirmar.TextScaled = true
+botaoConfirmar.Font = Enum.Font.GothamBold
+
+-- MENU (inicialmente escondido)
+local function criarMenu()
+	-- Título
+	local titulo = Instance.new("TextLabel", gui)
+	titulo.Size = UDim2.new(1, 0, 0, 30)
+	titulo.Position = UDim2.new(0, 0, 0, 0)
+	titulo.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	titulo.Text = "💥 Romario Script [NEW]"
+	titulo.TextColor3 = Color3.fromRGB(0, 255, 0)
+	titulo.TextScaled = true
+	titulo.Font = Enum.Font.GothamBold
+
+	-- ESP
+	local function ativarESP()
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+				if not player.Character.Head:FindFirstChild("ESP") then
+					local esp = Instance.new("BillboardGui", player.Character.Head)
+					esp.Size = UDim2.new(0, 100, 0, 40)
+					esp.AlwaysOnTop = true
+					esp.Name = "ESP"
+
+					local label = Instance.new("TextLabel", esp)  
+					label.Size = UDim2.new(1, 0, 1, 0)  
+					label.Text = player.Name  
+					label.BackgroundTransparency = 1  
+					label.TextColor3 = Color3.fromRGB(255, 0, 0)  
+					label.TextScaled = true  
+				end  
+			end  
 		end
 	end
-end
 
-local botaoESP = Instance.new("TextButton", gui)
-botaoESP.Size = UDim2.new(0, 200, 0, 40)
-botaoESP.Position = UDim2.new(0, 10, 0, 40)
-botaoESP.Text = "🔍 Ativar ESP"
-botaoESP.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-botaoESP.TextColor3 = Color3.new(1,1,1)
-botaoESP.TextScaled = true
-botaoESP.MouseButton1Click:Connect(ativarESP)
+	local botaoESP = Instance.new("TextButton", gui)
+	botaoESP.Size = UDim2.new(0, 200, 0, 40)
+	botaoESP.Position = UDim2.new(0, 10, 0, 40)
+	botaoESP.Text = "🔍 Ativar ESP"
+	botaoESP.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+	botaoESP.TextColor3 = Color3.new(1,1,1)
+	botaoESP.TextScaled = true
+	botaoESP.MouseButton1Click:Connect(ativarESP)
 
--- Noclip
-local noclipAtivo = false
-RunService.Stepped:Connect(function()
-	if noclipAtivo and LocalPlayer.Character then
-		for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-			if part:IsA("BasePart") then
-				part.CanCollide = false
+	-- Noclip
+	local noclipAtivo = false
+	RunService.Stepped:Connect(function()
+		if noclipAtivo and LocalPlayer.Character then
+			for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = false
+				end
 			end
 		end
+	end)
+
+	local botaoNoclip = Instance.new("TextButton", gui)
+	botaoNoclip.Size = UDim2.new(0, 200, 0, 40)
+	botaoNoclip.Position = UDim2.new(0, 10, 0, 90)
+	botaoNoclip.Text = "🚪 Noclip: OFF"
+	botaoNoclip.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+	botaoNoclip.TextColor3 = Color3.new(1,1,1)
+	botaoNoclip.TextScaled = true
+
+	botaoNoclip.MouseButton1Click:Connect(function()
+		noclipAtivo = not noclipAtivo
+		botaoNoclip.Text = noclipAtivo and "🚪 Noclip: ON" or "🚪 Noclip: OFF"
+	end)
+
+	-- Proteção (bolha vermelha)
+	local shield = nil
+	local weld = nil
+	local ativo = false
+
+	local function criarShield()
+		if shield then shield:Destroy() end
+		if weld then weld:Destroy() end
+		local root = char:WaitForChild("HumanoidRootPart")
+
+		shield = Instance.new("Part")  
+		shield.Name = "ShieldBubble"  
+		shield.Shape = Enum.PartType.Ball  
+		shield.Size = Vector3.new(10, 10, 10)  
+		shield.Transparency = 0.3  
+		shield.Anchored = false  
+		shield.CanCollide = true  
+		shield.Material = Enum.Material.ForceField  
+		shield.Color = Color3.fromRGB(255, 0, 0)  
+		shield.Position = root.Position  
+		shield.Parent = char  
+
+		weld = Instance.new("WeldConstraint")  
+		weld.Part0 = root  
+		weld.Part1 = shield  
+		weld.Parent = shield
 	end
-end)
 
-local botaoNoclip = Instance.new("TextButton", gui)
-botaoNoclip.Size = UDim2.new(0, 200, 0, 40)
-botaoNoclip.Position = UDim2.new(0, 10, 0, 90)
-botaoNoclip.Text = "🚪 Noclip: OFF"
-botaoNoclip.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-botaoNoclip.TextColor3 = Color3.new(1,1,1)
-botaoNoclip.TextScaled = true
+	local function removerShield()
+		if shield then shield:Destroy() end
+		if weld then weld:Destroy() end
+		shield = nil
+		weld = nil
+	end
 
-botaoNoclip.MouseButton1Click:Connect(function()
-	noclipAtivo = not noclipAtivo
-	botaoNoclip.Text = noclipAtivo and "🚪 Noclip: ON" or "🚪 Noclip: OFF"
-end)
+	local botaoProtecao = Instance.new("TextButton", gui)
+	botaoProtecao.Size = UDim2.new(0, 200, 0, 40)
+	botaoProtecao.Position = UDim2.new(0, 10, 0, 140)
+	botaoProtecao.Text = "🛡️ Proteção: OFF"
+	botaoProtecao.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
+	botaoProtecao.TextColor3 = Color3.new(1,1,1)
+	botaoProtecao.TextScaled = true
 
--- Proteção com bolha (ativação manual)
-local shield = nil
-local weld = nil
-local ativo = false
+	botaoProtecao.MouseButton1Click:Connect(function()
+		ativo = not ativo
+		if ativo then
+			criarShield()
+		else
+			removerShield()
+		end
+		botaoProtecao.Text = ativo and "🛡️ Proteção: ON" or "🛡️ Proteção: OFF"
+		botaoProtecao.BackgroundColor3 = ativo and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(255, 85, 85)
+	end)
 
-local function criarShield()
-	if shield then shield:Destroy() end
-	if weld then weld:Destroy() end
-	local root = char:WaitForChild("HumanoidRootPart")
-
-	shield = Instance.new("Part")
-	shield.Name = "ShieldBubble"
-	shield.Shape = Enum.PartType.Ball
-	shield.Size = Vector3.new(10, 10, 10)
-	shield.Transparency = 0.3
-	shield.Anchored = false
-	shield.CanCollide = true
-	shield.Material = Enum.Material.ForceField
-	shield.Color = Color3.fromRGB(255, 0, 0)
-	shield.Position = root.Position
-	shield.Parent = char
-
-	weld = Instance.new("WeldConstraint")
-	weld.Part0 = root
-	weld.Part1 = shield
-	weld.Parent = shield
+	LocalPlayer.CharacterAdded:Connect(function(newChar)
+		char = newChar
+		if ativo then
+			task.wait(1)
+			criarShield()
+		end
+	end)
 end
 
-local function removerShield()
-	if shield then shield:Destroy() end
-	if weld then weld:Destroy() end
-	shield = nil
-	weld = nil
-end
-
-local botaoProtecao = Instance.new("TextButton", gui)
-botaoProtecao.Size = UDim2.new(0, 200, 0, 40)
-botaoProtecao.Position = UDim2.new(0, 10, 0, 140)
-botaoProtecao.Text = "🛡️ Proteção: OFF"
-botaoProtecao.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
-botaoProtecao.TextColor3 = Color3.new(1,1,1)
-botaoProtecao.TextScaled = true
-
-botaoProtecao.MouseButton1Click:Connect(function()
-	ativo = not ativo
-	if ativo then
-		criarShield()
+-- Verificação da Key
+botaoConfirmar.MouseButton1Click:Connect(function()
+	if input.Text == "Romario Mod" then
+		frameKey:Destroy()
+		criarMenu()
 	else
-		removerShield()
-	end
-	botaoProtecao.Text = ativo and "🛡️ Proteção: ON" or "🛡️ Proteção: OFF"
-	botaoProtecao.BackgroundColor3 = ativo and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(255, 85, 85)
-end)
-
-LocalPlayer.CharacterAdded:Connect(function(newChar)
-	char = newChar
-	if ativo then
-		task.wait(1)
-		criarShield()
+		input.Text = ""
+		input.PlaceholderText = "❌ Key incorreta"
 	end
 end)
