@@ -1,142 +1,112 @@
---[[
-💥 Romario Script [NEW]
-✅ ESP (wallhack)
-✅ Noclip
-✅ Proteção com bolha vermelha (manual)
-✅ Totalmente com interface mobile
-]]
+-- Adicione esta função ao seu script Ability Wars Hax
+local function createAntiDropSystem()
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    local backpack = player:WaitForChild("Backpack")
+    local runService = game:GetService("RunService")
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    -- Variáveis de estado
+    local currentTool = nil
+    local antiDropEnabled = true
+    local lastEquipTime = 0
 
-local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-gui.Name = "RomarioScript"
+    -- Verifica se uma instância é válida
+    local function isValid(instance)
+        return instance and instance.Parent ~= nil
+    end
 
--- Título
-local titulo = Instance.new("TextLabel", gui)
-titulo.Size = UDim2.new(1, 0, 0, 30)
-titulo.Position = UDim2.new(0, 0, 0, 0)
-titulo.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-titulo.Text = "💥 Romario Script [NEW]"
-titulo.TextColor3 = Color3.fromRGB(0, 255, 0)
-titulo.TextScaled = true
-titulo.Font = Enum.Font.GothamBold
+    -- Força a reequipagem da ferramenta
+    local function forceReequip()
+        if not antiDropEnabled or not currentTool or not isValid(currentTool) then 
+            return 
+        end
 
--- ESP
-local function ativarESP()
-	for _, player in pairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-			if not player.Character.Head:FindFirstChild("ESP") then
-				local esp = Instance.new("BillboardGui", player.Character.Head)
-				esp.Size = UDim2.new(0, 100, 0, 40)
-				esp.AlwaysOnTop = true
-				esp.Name = "ESP"
+        local character = player.Character
+        if not character then return end
 
-				local label = Instance.new("TextLabel", esp)
-				label.Size = UDim2.new(1, 0, 1, 0)
-				label.Text = player.Name
-				label.BackgroundTransparency = 1
-				label.TextColor3 = Color3.fromRGB(255, 0, 0)
-				label.TextScaled = true
-			end
-		end
-	end
+        local humanoid = character:FindFirstChild("Humanoid")
+        if not humanoid then return end
+
+        -- Verifica se a ferramenta já está equipada
+        local alreadyEquipped = false
+        for _, tool in ipairs(character:GetChildren()) do
+            if tool:IsA("Tool") and tool == currentTool then
+                alreadyEquipped = true
+                break
+            end
+        end
+
+        -- Reequipa se necessário
+        if not alreadyEquipped then
+            currentTool.Parent = character
+            lastEquipTime = tick()
+        end
+    end
+
+    -- Monitora a ferramenta ativa
+    runService.Heartbeat:Connect(function()
+        -- Atualiza a ferramenta atual
+        local character = player.Character
+        if character then
+            for _, tool in ipairs(character:GetChildren()) do
+                if tool:IsA("Tool") then
+                    currentTool = tool
+                    break
+                end
+            end
+        end
+
+        -- Força reequipagem periódica
+        if tick() - lastEquipTime > 0.5 then
+            forceReequip()
+        end
+    end)
+
+    -- Previne o drop quando o personagem é atingido
+    player.CharacterAdded:Connect(function(character)
+        local humanoid = character:WaitForChild("Humanoid")
+        
+        humanoid.Hurt:Connect(function()
+            if antiDropEnabled then
+                forceReequip()
+            end
+        end)
+    end)
+
+    -- Previne o drop através de ChildRemoved
+    if player.Character then
+        player.Character.ChildRemoved:Connect(function(child)
+            if antiDropEnabled and child:IsA("Tool") and child == currentTool then
+                task.wait(0.1)
+                forceReequip()
+            end
+        end)
+    end
+
+    -- Previne transferência para o chão
+    workspace.ChildAdded:Connect(function(child)
+        if antiDropEnabled and child:IsA("Tool") and child.Name == currentTool.Name then
+            child:Destroy() -- Destrói a versão que caiu no chão
+            forceReequip()
+        end
+    end)
+
+    -- Interface de controle
+    local antiDropBtn = createButton("Anti-Drop [ON]", 0.7, nil)
+    antiDropBtn.MouseButton1Click:Connect(function()
+        antiDropEnabled = not antiDropEnabled
+        antiDropBtn.Text = antiDropEnabled and "Anti-Drop [ON]" or "Anti-Drop [OFF]"
+        antiDropBtn.BackgroundColor3 = antiDropEnabled and 
+            Color3.fromRGB(80, 180, 80) or 
+            Color3.fromRGB(180, 80, 80)
+    end)
+
+    return {
+        enable = function() antiDropEnabled = true end,
+        disable = function() antiDropEnabled = false end,
+        forceEquip = forceReequip
+    }
 end
 
-local botaoESP = Instance.new("TextButton", gui)
-botaoESP.Size = UDim2.new(0, 200, 0, 40)
-botaoESP.Position = UDim2.new(0, 10, 0, 40)
-botaoESP.Text = "🔍 Ativar ESP"
-botaoESP.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-botaoESP.TextColor3 = Color3.new(1,1,1)
-botaoESP.TextScaled = true
-botaoESP.MouseButton1Click:Connect(ativarESP)
-
--- Noclip
-local noclipAtivo = false
-RunService.Stepped:Connect(function()
-	if noclipAtivo and LocalPlayer.Character then
-		for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-			if part:IsA("BasePart") then
-				part.CanCollide = false
-			end
-		end
-	end
-end)
-
-local botaoNoclip = Instance.new("TextButton", gui)
-botaoNoclip.Size = UDim2.new(0, 200, 0, 40)
-botaoNoclip.Position = UDim2.new(0, 10, 0, 90)
-botaoNoclip.Text = "🚪 Noclip: OFF"
-botaoNoclip.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-botaoNoclip.TextColor3 = Color3.new(1,1,1)
-botaoNoclip.TextScaled = true
-
-botaoNoclip.MouseButton1Click:Connect(function()
-	noclipAtivo = not noclipAtivo
-	botaoNoclip.Text = noclipAtivo and "🚪 Noclip: ON" or "🚪 Noclip: OFF"
-end)
-
--- Proteção com bolha (ativação manual)
-local shield = nil
-local weld = nil
-local ativo = false
-
-local function criarShield()
-	if shield then shield:Destroy() end
-	if weld then weld:Destroy() end
-	local root = char:WaitForChild("HumanoidRootPart")
-
-	shield = Instance.new("Part")
-	shield.Name = "ShieldBubble"
-	shield.Shape = Enum.PartType.Ball
-	shield.Size = Vector3.new(10, 10, 10)
-	shield.Transparency = 0.3
-	shield.Anchored = false
-	shield.CanCollide = true
-	shield.Material = Enum.Material.ForceField
-	shield.Color = Color3.fromRGB(255, 0, 0)
-	shield.Position = root.Position
-	shield.Parent = char
-
-	weld = Instance.new("WeldConstraint")
-	weld.Part0 = root
-	weld.Part1 = shield
-	weld.Parent = shield
-end
-
-local function removerShield()
-	if shield then shield:Destroy() end
-	if weld then weld:Destroy() end
-	shield = nil
-	weld = nil
-end
-
-local botaoProtecao = Instance.new("TextButton", gui)
-botaoProtecao.Size = UDim2.new(0, 200, 0, 40)
-botaoProtecao.Position = UDim2.new(0, 10, 0, 140)
-botaoProtecao.Text = "🛡️ Proteção: OFF"
-botaoProtecao.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
-botaoProtecao.TextColor3 = Color3.new(1,1,1)
-botaoProtecao.TextScaled = true
-
-botaoProtecao.MouseButton1Click:Connect(function()
-	ativo = not ativo
-	if ativo then
-		criarShield()
-	else
-		removerShield()
-	end
-	botaoProtecao.Text = ativo and "🛡️ Proteção: ON" or "🛡️ Proteção: OFF"
-	botaoProtecao.BackgroundColor3 = ativo and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(255, 85, 85)
-end)
-
-LocalPlayer.CharacterAdded:Connect(function(newChar)
-	char = newChar
-	if ativo then
-		task.wait(1)
-		criarShield()
-	end
-end)
+-- Inicializa o sistema anti-drop
+local antiDropSystem = createAntiDropSystem()
