@@ -1,54 +1,142 @@
+--[[
+💥 Romario Script [NEW]
+✅ ESP (wallhack)
+✅ Noclip
+✅ Proteção com bolha vermelha (manual)
+✅ Totalmente com interface mobile
+]]
+
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-gui.Name = "ShieldGUI"
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 
--- Botão na tela
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0, 160, 0, 40)
-button.Position = UDim2.new(0, 20, 0.6, 0)
-button.Text = "🛡️ Proteção: OFF"
-button.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
-button.TextColor3 = Color3.new(1,1,1)
-button.Font = Enum.Font.SourceSansBold
-button.TextSize = 18
-button.Parent = gui
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "RomarioScript"
 
--- Bola de proteção vermelha
-local shield = Instance.new("Part")
-shield.Name = "ShieldBubble"
-shield.Shape = Enum.PartType.Ball
-shield.Size = Vector3.new(10, 10, 10) -- Tamanho da proteção
-shield.Transparency = 0.3 -- visível, mas um pouco transparente
-shield.Anchored = false
-shield.CanCollide = false -- só ativa quando clicar
-shield.Material = Enum.Material.ForceField
-shield.Color = Color3.fromRGB(255, 0, 0) -- VERMELHO
-shield.Parent = char
-shield.Position = char:WaitForChild("HumanoidRootPart").Position
+-- Título
+local titulo = Instance.new("TextLabel", gui)
+titulo.Size = UDim2.new(1, 0, 0, 30)
+titulo.Position = UDim2.new(0, 0, 0, 0)
+titulo.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titulo.Text = "💥 Romario Script [NEW]"
+titulo.TextColor3 = Color3.fromRGB(0, 255, 0)
+titulo.TextScaled = true
+titulo.Font = Enum.Font.GothamBold
 
--- Solda com personagem
-local weld = Instance.new("WeldConstraint")
-weld.Part0 = char:WaitForChild("HumanoidRootPart")
-weld.Part1 = shield
-weld.Parent = shield
+-- ESP
+local function ativarESP()
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+			if not player.Character.Head:FindFirstChild("ESP") then
+				local esp = Instance.new("BillboardGui", player.Character.Head)
+				esp.Size = UDim2.new(0, 100, 0, 40)
+				esp.AlwaysOnTop = true
+				esp.Name = "ESP"
 
--- Controle de ativação
-local active = false
-button.MouseButton1Click:Connect(function()
-	active = not active
-	shield.CanCollide = active
-	shield.Transparency = active and 0.3 or 1 -- visível só quando ligado
-	button.Text = active and "🛡️ Proteção: ON" or "🛡️ Proteção: OFF"
-	button.BackgroundColor3 = active and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(255, 85, 85)
+				local label = Instance.new("TextLabel", esp)
+				label.Size = UDim2.new(1, 0, 1, 0)
+				label.Text = player.Name
+				label.BackgroundTransparency = 1
+				label.TextColor3 = Color3.fromRGB(255, 0, 0)
+				label.TextScaled = true
+			end
+		end
+	end
+end
+
+local botaoESP = Instance.new("TextButton", gui)
+botaoESP.Size = UDim2.new(0, 200, 0, 40)
+botaoESP.Position = UDim2.new(0, 10, 0, 40)
+botaoESP.Text = "🔍 Ativar ESP"
+botaoESP.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+botaoESP.TextColor3 = Color3.new(1,1,1)
+botaoESP.TextScaled = true
+botaoESP.MouseButton1Click:Connect(ativarESP)
+
+-- Noclip
+local noclipAtivo = false
+RunService.Stepped:Connect(function()
+	if noclipAtivo and LocalPlayer.Character then
+		for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = false
+			end
+		end
+	end
 end)
 
--- Atualiza caso o personagem respawnar
-player.CharacterAdded:Connect(function(newChar)
-	char = newChar
+local botaoNoclip = Instance.new("TextButton", gui)
+botaoNoclip.Size = UDim2.new(0, 200, 0, 40)
+botaoNoclip.Position = UDim2.new(0, 10, 0, 90)
+botaoNoclip.Text = "🚪 Noclip: OFF"
+botaoNoclip.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+botaoNoclip.TextColor3 = Color3.new(1,1,1)
+botaoNoclip.TextScaled = true
+
+botaoNoclip.MouseButton1Click:Connect(function()
+	noclipAtivo = not noclipAtivo
+	botaoNoclip.Text = noclipAtivo and "🚪 Noclip: ON" or "🚪 Noclip: OFF"
+end)
+
+-- Proteção com bolha (ativação manual)
+local shield = nil
+local weld = nil
+local ativo = false
+
+local function criarShield()
+	if shield then shield:Destroy() end
+	if weld then weld:Destroy() end
 	local root = char:WaitForChild("HumanoidRootPart")
+
+	shield = Instance.new("Part")
+	shield.Name = "ShieldBubble"
+	shield.Shape = Enum.PartType.Ball
+	shield.Size = Vector3.new(10, 10, 10)
+	shield.Transparency = 0.3
+	shield.Anchored = false
+	shield.CanCollide = true
+	shield.Material = Enum.Material.ForceField
+	shield.Color = Color3.fromRGB(255, 0, 0)
+	shield.Position = root.Position
 	shield.Parent = char
+
+	weld = Instance.new("WeldConstraint")
 	weld.Part0 = root
 	weld.Part1 = shield
+	weld.Parent = shield
+end
+
+local function removerShield()
+	if shield then shield:Destroy() end
+	if weld then weld:Destroy() end
+	shield = nil
+	weld = nil
+end
+
+local botaoProtecao = Instance.new("TextButton", gui)
+botaoProtecao.Size = UDim2.new(0, 200, 0, 40)
+botaoProtecao.Position = UDim2.new(0, 10, 0, 140)
+botaoProtecao.Text = "🛡️ Proteção: OFF"
+botaoProtecao.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
+botaoProtecao.TextColor3 = Color3.new(1,1,1)
+botaoProtecao.TextScaled = true
+
+botaoProtecao.MouseButton1Click:Connect(function()
+	ativo = not ativo
+	if ativo then
+		criarShield()
+	else
+		removerShield()
+	end
+	botaoProtecao.Text = ativo and "🛡️ Proteção: ON" or "🛡️ Proteção: OFF"
+	botaoProtecao.BackgroundColor3 = ativo and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(255, 85, 85)
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+	char = newChar
+	if ativo then
+		task.wait(1)
+		criarShield()
+	end
 end)
